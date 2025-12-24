@@ -49,6 +49,38 @@ python3 app.py
 
 在浏览器中打开：http://localhost:5000
 
+### 方法三：使用 Docker 部署
+
+#### 使用 Dockerfile 构建镜像
+
+```bash
+# 构建 Docker 镜像
+docker build -t shortcut-search-tool .
+
+# 运行容器
+docker run -d -p 5000:5000 --name shortcut-search shortcut-search-tool
+```
+
+#### 使用 Docker Compose（推荐）
+
+```bash
+# 启动服务
+docker-compose up -d
+
+# 查看服务状态
+docker-compose ps
+
+# 停止服务
+docker-compose down
+
+# 查看日志
+docker-compose logs -f
+```
+
+#### 访问应用
+
+在浏览器中打开：http://localhost:5000
+
 ## 项目结构
 
 ```
@@ -92,4 +124,3 @@ GET /api/categories
 - **后端**：Flask (Python)
 - **前端**：HTML + CSS + JavaScript
 - **样式**：原生 CSS（无框架依赖）
-

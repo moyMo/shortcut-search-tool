@@ -1,0 +1,19 @@
+services:
+  shortcut-search:
+    build: .
+    container_name: shortcut-search-tool
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=production
+    volumes:
+      - ./translation.md:/app/translation.md:ro
+      - ./templates:/app/templates:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/shortcuts"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
