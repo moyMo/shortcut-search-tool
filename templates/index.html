@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>macOS 快捷键查询工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .search-box {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+
+        .search-controls {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-input-wrapper {
+            flex: 1;
+            min-width: 250px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 15px 20px;
+            font-size: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .category-select {
+            padding: 15px 20px;
+            font-size: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .category-select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .clear-btn {
+            padding: 15px 30px;
+            font-size: 16px;
+            background: #f5f5f5;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .clear-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .results-info {
+            margin-top: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .results-container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .results-header h2 {
+            color: #333;
+            font-size: 1.5em;
+        }
+
+        .results-count {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .shortcuts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .shortcut-card {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+
+        .shortcut-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            border-color: #667eea;
+        }
+
+        .shortcut-category {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .shortcut-function {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .shortcut-keys {
+            font-size: 18px;
+            color: #667eea;
+            font-weight: 600;
+            font-family: 'SF Pro Display', -apple-system, sans-serif;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .no-results-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .shortcuts-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .search-controls {
+                flex-direction: column;
+            }
+            
+            .search-input-wrapper {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⌨️ macOS 快捷键查询工具</h1>
+            <p>快速查找和搜索 macOS 键盘快捷键</p>
+        </div>
+
+        <div class="search-box">
+            <div class="search-controls">
+                <div class="search-input-wrapper">
+                    <input 
+                        type="text" 
+                        class="search-input" 
+                        id="searchInput" 
+                        placeholder="搜索功能名称或快捷键..."
+                        autocomplete="off"
+                    >
+                </div>
+                <select class="category-select" id="categorySelect">
+                    <option value="">所有分类</option>
+                </select>
+                <button class="clear-btn" onclick="clearSearch()">清除</button>
+            </div>
+            <div class="results-info" id="resultsInfo"></div>
+        </div>
+
+        <div class="results-container">
+            <div class="results-header">
+                <h2>快捷键列表</h2>
+                <div class="results-count" id="resultsCount">共 0 条</div>
+            </div>
+            <div id="resultsContainer">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>加载中...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allShortcuts = [];
+        let categories = [];
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCategories();
+            loadShortcuts();
+            
+            // 搜索输入框事件
+            document.getElementById('searchInput').addEventListener('input', debounce(handleSearch, 300));
+            document.getElementById('categorySelect').addEventListener('change', handleSearch);
+        });
+
+        // 防抖函数
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // 加载分类
+        async function loadCategories() {
+            try {
+                const response = await fetch('/api/categories');
+                const result = await response.json();
+                if (result.success) {
+                    categories = result.data;
+                    const select = document.getElementById('categorySelect');
+                    categories.forEach(category => {
+                        const option = document.createElement('option');
+                        option.value = category;
+                        option.textContent = category;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('加载分类失败:', error);
+            }
+        }
+
+        // 加载所有快捷键
+        async function loadShortcuts() {
+            try {
+                const response = await fetch('/api/shortcuts');
+                const result = await response.json();
+                if (result.success) {
+                    allShortcuts = result.data;
+                    displayShortcuts(allShortcuts);
+                }
+            } catch (error) {
+                console.error('加载快捷键失败:', error);
+                document.getElementById('resultsContainer').innerHTML = 
+                    '<div class="no-results"><p>加载失败，请刷新页面重试</p></div>';
+            }
+        }
+
+        // 搜索处理
+        async function handleSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+            const category = document.getElementById('categorySelect').value;
+            
+            const params = new URLSearchParams();
+            if (query) params.append('q', query);
+            if (category) params.append('category', category);
+            
+            try {
+                const response = await fetch(`/api/search?${params.toString()}`);
+                const result = await response.json();
+                if (result.success) {
+                    displayShortcuts(result.data);
+                }
+            } catch (error) {
+                console.error('搜索失败:', error);
+            }
+        }
+
+        // 显示快捷键
+        function displayShortcuts(shortcuts) {
+            const container = document.getElementById('resultsContainer');
+            const countElement = document.getElementById('resultsCount');
+            
+            countElement.textContent = `共 ${shortcuts.length} 条`;
+            
+            if (shortcuts.length === 0) {
+                container.innerHTML = `
+                    <div class="no-results">
+                        <div class="no-results-icon">🔍</div>
+                        <p>没有找到匹配的快捷键</p>
+                        <p style="margin-top: 10px; font-size: 14px;">尝试使用其他关键词搜索</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // 按分类分组
+            const grouped = {};
+            shortcuts.forEach(item => {
+                if (!grouped[item.category]) {
+                    grouped[item.category] = [];
+                }
+                grouped[item.category].push(item);
+            });
+            
+            let html = '';
+            Object.keys(grouped).sort().forEach(category => {
+                html += `<div style="margin-bottom: 30px;">`;
+                html += `<h3 style="color: #667eea; margin-bottom: 15px; font-size: 1.2em;">${category}</h3>`;
+                html += `<div class="shortcuts-grid">`;
+                
+                grouped[category].forEach(item => {
+                    html += `
+                        <div class="shortcut-card">
+                            <div class="shortcut-category">${item.category}</div>
+                            <div class="shortcut-function">${escapeHtml(item.function)}</div>
+                            <div class="shortcut-keys">${escapeHtml(item.shortcut)}</div>
+                        </div>
+                    `;
+                });
+                
+                html += `</div></div>`;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // 清除搜索
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('categorySelect').value = '';
+            displayShortcuts(allShortcuts);
+        }
+
+        // HTML 转义
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
+
